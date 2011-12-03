@@ -10,11 +10,10 @@ between 'optimizeModule' and the @opt@ shell command.
 -}
 module LLVM.Util.Optimize(optimizeModule) where
 
-import LLVM.Core.Util(Module, withModule)
 import qualified LLVM.FFI.Core as FFI
 import qualified LLVM.FFI.Support as FFI
 -- import LLVM.FFI.Target(addTargetData, createTargetData)
-import LLVM.FFI.Transforms.IPO
+-- import LLVM.FFI.Transforms.IPO
 import LLVM.FFI.Transforms.Scalar
 import Control.Exception (bracket, )
 
@@ -22,45 +21,44 @@ import Control.Exception (bracket, )
 {- |
 Result tells whether the module was modified by any of the passes.
 -}
-optimizeModule :: Int -> Module -> IO Bool
-optimizeModule optLevel mdl =
-    withModule mdl $ \ m ->
+optimizeModule :: Int -> FFI.ModuleRef -> IO Bool
+optimizeModule optLevel m = do
     {-
     Core.Util.createPassManager would provide a finalizer for us,
     but I think it is better here to immediately dispose the manager
     when we need it no longer.
     -}
-    bracket FFI.createPassManager FFI.disposePassManager $ \ passes ->
-
-{-
-Note on LLVM-2.6 to 2.8 (at least):
-As far as I understand, if we do not set target data,
-then the optimizer will only perform machine independent optimizations.
-If we set target data
-(e.g. an empty layout string obtained from a module without 'target data' specification.)
-we risk that the optimizer switches to a wrong layout
-(e.g. to 64 bit pointers on a 32 bit machine for empty layout string)
-and thus generates corrupt code.
-
-Currently it seems to be safer to disable
-machine dependent optimization completely.
-
-http://llvm.org/bugs/show_bug.cgi?id=6394
-
-    -- Pass the module target data to the pass manager.
-    target <- FFI.getDataLayout m >>= createTargetData
-    addTargetData target passes
--}
+    bracket FFI.createPassManager FFI.disposePassManager $ \ passes -> do
 
     {-
-    opt.cpp does not use a FunctionPassManager for function optimization,
-    but a module PassManager.
-    Thus we do it the same way.
-    I assume that we would need a FunctionPassManager
-    only if we wanted to apply individual optimizations to functions.
+      Note on LLVM-2.6 to 2.8 (at least):
+      As far as I understand, if we do not set target data,
+      then the optimizer will only perform machine independent optimizations.
+      If we set target data
+      (e.g. an empty layout string obtained from a module without 'target data' specification.)
+      we risk that the optimizer switches to a wrong layout
+      (e.g. to 64 bit pointers on a 32 bit machine for empty layout string)
+      and thus generates corrupt code.
+      
+      Currently it seems to be safer to disable
+      machine dependent optimization completely.
+      
+      http://llvm.org/bugs/show_bug.cgi?id=6394
+      
+      -- Pass the module target data to the pass manager.
+         target <- FFI.getDataLayout m >>= createTargetData
+         addTargetData target passes
+     -}
 
-    fPasses <- FFI.createFunctionPassManager mp
-    -}
+    {-
+      opt.cpp does not use a FunctionPassManager for function optimization,
+      but a module PassManager.
+      Thus we do it the same way.
+      I assume that we would need a FunctionPassManager
+      only if we wanted to apply individual optimizations to functions.
+      
+      fPasses <- FFI.createFunctionPassManager mp
+     -}
     bracket FFI.createPassManager FFI.disposePassManager $ \ fPasses -> do
     -- add module target data?
 
@@ -69,9 +67,9 @@ http://llvm.org/bugs/show_bug.cgi?id=6394
     addOptimizationPasses passes fPasses optLevel
 
     {- if we wanted to do so, we could loop through all functions and optimize them.
-    initializeFunctionPassManager fPasses
-    runFunctionPassManager fPasses fcn
-    -}
+       initializeFunctionPassManager fPasses
+       runFunctionPassManager fPasses fcn
+     -}
 
     functionsModified <- FFI.runPassManager fPasses m
 
