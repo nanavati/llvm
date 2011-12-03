@@ -415,7 +415,8 @@ unsigned LLVMLinkModules(LLVMModuleRef dest, LLVMModuleRef src, char **out)
     assert(destinationp);
 
     std::string msg;
-    if (llvm::Linker::LinkModules(destinationp, sourcep, &msg)) {
+    if (llvm::Linker::LinkModules(destinationp, sourcep, 
+                                  llvm::Linker::DestroySource, &msg)) {
         *out = strdup(msg.c_str());
         return 0;
     }
