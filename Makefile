@@ -19,7 +19,7 @@ configure: configure.ac
 build: dist/setup-config
 	./setup build
 
-dist/setup-config: setup configure llvm.cabal llvm.buildinfo.in
+dist/setup-config: setup configure llvm-ffi.cabal llvm.buildinfo.in
 	./setup configure --user --prefix=$(prefix) --libdir=$(prefix)/$(_lib) \
 	    --configure-option --with-llvm-prefix=$(llvm_prefix) $(user_flag)
 

@@ -86,9 +86,12 @@ module LLVM.FFI.Core
     , countStructElementTypes
     , getStructElementTypes
     , isPackedStruct
+    , structCreateNamed
+    , getStructName
+    , structSetBody
 
     -- * Type handles
-    , TypeHandleRef
+    -- , TypeHandleRef
     -- Removed in LLVM_3.0
     -- , createTypeHandle
     -- Removed in LLVM_3.0
@@ -298,6 +301,11 @@ module LLVM.FFI.Core
     -- Removed in LLVM_3.0
     -- , buildUnwind
     , buildUnreachable
+
+    -- ** Landing pad
+    , buildLandingPad
+    , addClause
+    , setCleanup
 
     -- ** Arithmetic
     , buildAdd
@@ -1097,6 +1105,14 @@ foreign import ccall unsafe "LLVMBuildInvoke" buildInvoke
 foreign import ccall unsafe "LLVMBuildUnreachable" buildUnreachable
     :: BuilderRef -> IO ValueRef
 
+-- New landing pad instructions for LLVM 3.0
+foreign import ccall unsafe "LLVMBuildLandingPad" buildLandingPad
+    :: BuilderRef -> TypeRef -> ValueRef -> CUInt -> CString -> IO ValueRef
+foreign import ccall unsafe "LLVMAddClause" addClause
+    :: ValueRef -> ValueRef -> IO ()
+foreign import ccall unsafe "LLVMSetCleanup" setCleanup
+    :: ValueRef -> CUInt -> IO ()
+
 foreign import ccall unsafe "LLVMBuildAdd" buildAdd
     :: BuilderRef -> ValueRef -> ValueRef -> CString -> IO ValueRef
 foreign import ccall unsafe "LLVMBuildSub" buildSub
@@ -1229,9 +1245,9 @@ data MemoryBuffer
     deriving (Typeable)
 type MemoryBufferRef = Ptr MemoryBuffer
 
-data TypeHandle
-    deriving (Typeable)
-type TypeHandleRef = Ptr TypeHandle
+-- data TypeHandle
+--     deriving (Typeable)
+-- type TypeHandleRef = Ptr TypeHandle
 
 data TypeKind
     = VoidTypeKind
@@ -1289,6 +1305,15 @@ foreign import ccall unsafe "LLVMSetTarget" setTarget
     :: ModuleRef -> CString -> IO ()
 foreign import ccall unsafe "LLVMSizeOf" sizeOf
     :: TypeRef -> IO ValueRef
+
+-- Struct named functions in LLVM 3.0
+foreign import ccall unsafe "LLVMStructCreateNamed" structCreateNamed
+    :: ContextRef -> CString -> IO TypeRef
+foreign import ccall unsafe "LLVMGetStructName" getStructName
+    :: TypeRef -> IO CString
+foreign import ccall unsafe "LLVMStructSetBody" structSetBody
+    :: TypeRef -> Ptr TypeRef -> CUInt -> CUInt -> IO ()
+
 
 data Attribute
     = ZExtAttribute

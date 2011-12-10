@@ -190,6 +190,9 @@ void *LLVMGetPointerToFunction(LLVMExecutionEngineRef ee, LLVMValueRef fn);
  * containing the call is still in a proper state (not changed). */
 int LLVMInlineFunction(LLVMValueRef call);
 
+/* Adds an object file emission pass with the host machine's settings */
+bool LLVMAddEmitObjectPass (LLVMModuleRef modRef, const char* filename);
+
 /* Passes. Some passes are used directly from LLVM-C, rest are declared
  * here. */
 
