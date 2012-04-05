@@ -1,4 +1,4 @@
-AC_INIT([Haskell LLVM FFI bindings], [3.0.0.0], [bos@serpentine.com], [llvm-base])
+AC_INIT([Haskell LLVM FFI bindings], [3.0.0.0.1], [bos@serpentine.com], [llvm-base])
 
 AC_CONFIG_SRCDIR([LLVM/FFI/Core.hsc])
 
@@ -121,8 +121,13 @@ AC_CHECK_LIB(LLVMCore, LLVMModuleCreateWithName, [], [])
 if test "$ac_cv_lib_LLVMCore_LLVMModuleCreateWithName" = "no"; then
   unset ac_cv_lib_LLVMCore_LLVMModuleCreateWithName
   LIBS="-lLLVMSupport $save_LIBS"
-  AC_CHECK_LIB(LLVMCore, LLVMModuleCreateWithName, [],
-    [AC_MSG_ERROR(could not find LLVM C bindings)])
+  AC_CHECK_LIB(LLVMCore, LLVMModuleCreateWithName, [], [])
+  if test "$ac_cv_lib_LLVMCore_LLVMModuleCreateWithName" = "no"; then
+    unset ac_cv_lib_LLVMCore_LLVMModuleCreateWithName
+    LIBS="-lLLVMSupport -lpsapi -limagehlp $save_LIBS"
+    AC_CHECK_LIB(LLVMCore, LLVMModuleCreateWithName, [],
+      [AC_MSG_ERROR(could not find LLVM C bindings)])
+  fi
 fi
 
 llvm_num_version="`echo $llvm_version | tr . 0`"

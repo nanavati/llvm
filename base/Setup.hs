@@ -34,8 +34,9 @@ generateBuildInfo _ conf _ _ = do
     let path = case [ p | arg <- args, Just p <- [stripPrefix pref arg] ] of
                [p] -> p
                _ -> error $ "Use '--configure-option " ++ pref ++ "PATH' to give LLVM installation path"
-    info <- readFile "llvm.buildinfo.windows.in"
-    writeFile "llvm.buildinfo" $ subst "@llvm_path@" path info
+    info <- readFile "llvm-base.buildinfo.windows.in"
+    writeFile "llvm-base.buildinfo" $ subst "@llvm_path@" path info
+    copyFile "include/hs_llvm_config.h.windows.in" "include/hs_llvm_config.h"
 
 subst from to [] = []
 subst from to xs | Just r <- stripPrefix from xs = to ++ subst from to r
